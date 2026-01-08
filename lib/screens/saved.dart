@@ -122,6 +122,7 @@ class _SavedScreenState extends State<SavedScreen> {
 
     // if (_viewMode == SavedViewMode.focus) {
     //   final affirmation = items[_focusIndex % items.length];
+    //   final singleItem = items.length == 1;
     //
     //   return GestureDetector(
     //     onHorizontalDragEnd: (details) {
@@ -136,33 +137,48 @@ class _SavedScreenState extends State<SavedScreen> {
     //     child: Column(
     //       mainAxisAlignment: MainAxisAlignment.center,
     //       children: [
-    //         // Affirmation
-    //         Padding(
-    //           padding: const EdgeInsets.all(24),
-    //           child: Text(
-    //             affirmation.text,
-    //             style: Theme.of(context).textTheme.headlineSmall,
-    //             textAlign: TextAlign.center,
+    //         const Spacer(),
+    //
+    //         Flexible(
+    //           child: Center(
+    //             child: Padding(
+    //               padding: const EdgeInsets.symmetric(horizontal: 24),
+    //               child: Column(
+    //                 mainAxisSize: MainAxisSize.min,
+    //                 children: [
+    //                   Text(
+    //                     affirmation.text,
+    //                     style: Theme.of(context).textTheme.headlineSmall,
+    //                     textAlign: TextAlign.center,
+    //                   ),
+    //                 ],
+    //               ),
+    //             ),
     //           ),
     //         ),
     //
-    //         // Index
-    //         Text(
-    //           '${_focusIndex + 1} of ${items.length}',
-    //           style: Theme.of(context).textTheme.bodySmall,
+    //         const SizedBox(height: 16),
+    //
+    //         Row(
+    //           mainAxisAlignment: MainAxisAlignment.center,
+    //           children: [
+    //             Text(
+    //               '${_focusIndex + 1} of ${items.length}',
+    //               style: Theme.of(context).textTheme.bodySmall,
+    //             ),
+    //           ],
     //         ),
     //
-    //         const SizedBox(height: 24),
+    //         const SizedBox(height: 32),
     //
-    //         // Actions
+    //         // Action buttons
     //         Row(
     //           mainAxisAlignment: MainAxisAlignment.center,
     //           children: [
     //             IconButton(
     //               icon: const Icon(Icons.arrow_back),
-    //               onPressed: _focusIndex > 0
-    //                   ? () => _prevFocus(items.length)
-    //                   : null,
+    //               color: singleItem ? Colors.grey : null,
+    //               onPressed: singleItem ? null : () => _prevFocus(items.length),
     //             ),
     //             IconButton(
     //               icon: Icon(
@@ -189,111 +205,156 @@ class _SavedScreenState extends State<SavedScreen> {
     //             ),
     //             IconButton(
     //               icon: const Icon(Icons.arrow_forward),
-    //               onPressed: _focusIndex < items.length - 1
-    //                   ? () => _nextFocus(items.length)
-    //                   : null,
+    //               color: singleItem ? Colors.grey : null,
+    //               onPressed: singleItem ? null : () => _nextFocus(items.length),
     //             ),
     //           ],
     //         ),
+    //
+    //         const Spacer(),
     //       ],
     //     ),
-    //
     //   );
     // }
     if (_viewMode == SavedViewMode.focus) {
-      final affirmation = items[_focusIndex % items.length];
       final singleItem = items.length == 1;
 
-      return GestureDetector(
-        onHorizontalDragEnd: (details) {
-          if (details.primaryVelocity == null) return;
-          if (details.primaryVelocity! < 0) {
-            _nextFocus(items.length);
-          } else {
-            _prevFocus(items.length);
-          }
-        },
+      // PageController for the carousel
+      final pageController = PageController(initialPage: _focusIndex);
 
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Spacer(),
+      return Column(
+        children: [
+          const Spacer(),
 
-            Flexible(
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        affirmation.text,
-                        style: Theme.of(context).textTheme.headlineSmall,
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+          // PageView for affirmations
+          Expanded(
+            child: PageView.builder(
+              controller: pageController,
+              itemCount: items.length,
+              onPageChanged: (index) {
+                setState(() {
+                  _focusIndex = index % items.length;
+                });
+              },
+              itemBuilder: (context, index) {
+                final affirmation = items[index % items.length];
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Text(
+                      affirmation.text,
+                      style: Theme.of(context).textTheme.headlineSmall,
+                      textAlign: TextAlign.center,
+                    ),
                   ),
-                ),
+                );
+              },
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // Index
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                '${_focusIndex + 1} of ${items.length}',
+                style: Theme.of(context).textTheme.bodySmall,
               ),
-            ),
+            ],
+          ),
 
-            const SizedBox(height: 16),
+          const SizedBox(height: 32),
 
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  '${_focusIndex + 1} of ${items.length}',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
-            ),
+          // Action buttons
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // IconButton(
+              //   icon: const Icon(Icons.arrow_back),
+              //   color: singleItem ? Colors.grey : null,
+              //   onPressed: singleItem
+              //       ? null
+              //       : () {
+              //     _prevFocus(items.length);
+              //     pageController.animateToPage(
+              //       _focusIndex,
+              //       duration: const Duration(milliseconds: 300),
+              //       curve: Curves.easeInOut,
+              //     );
+              //   },
+              // ),
+              IconButton(
+                icon: const Icon(Icons.arrow_back),
+                color: singleItem ? Colors.grey : null,
+                onPressed: singleItem
+                    ? null
+                    : () {
+                  final prevIndex = (_focusIndex - 1 + items.length) % items.length;
+                  setState(() => _focusIndex = prevIndex);
 
-            const SizedBox(height: 32),
+                  // Skip animation if looping
+                  pageController.jumpToPage(prevIndex);
+                },
+              ),
+              IconButton(
+                icon: Icon(
+                  items[_focusIndex].isFavorite
+                      ? Icons.favorite
+                      : Icons.favorite_border,
+                ),
+                color: Colors.green,
+                onPressed: () async {
+                  final affirmation = items[_focusIndex];
+                  await _repo.toggleFavorite(
+                    affirmation.id,
+                    !affirmation.isFavorite,
+                  );
+                  _refreshAffirmations();
+                },
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete),
+                color: Colors.deepOrange,
+                onPressed: () async {
+                  final affirmation = items[_focusIndex];
+                  await _repo.deleteAffirmation(affirmation.id);
+                  _refreshAffirmations();
+                },
+              ),
+              // IconButton(
+              //   icon: const Icon(Icons.arrow_forward),
+              //   color: singleItem ? Colors.grey : null,
+              //   onPressed: singleItem
+              //       ? null
+              //       : () {
+              //     _nextFocus(items.length);
+              //     pageController.animateToPage(
+              //       _focusIndex,
+              //       duration: const Duration(milliseconds: 300),
+              //       curve: Curves.easeInOut,
+              //     );
+              //   },
+              // ),
+              IconButton(
+                icon: const Icon(Icons.arrow_forward),
+                color: singleItem ? Colors.grey : null,
+                onPressed: singleItem
+                    ? null
+                    : () {
+                  final nextIndex = (_focusIndex + 1) % items.length;
+                  setState(() => _focusIndex = nextIndex);
 
-            // Action buttons
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back),
-                  color: singleItem ? Colors.grey : null,
-                  onPressed: singleItem ? null : () => _prevFocus(items.length),
-                ),
-                IconButton(
-                  icon: Icon(
-                    affirmation.isFavorite
-                        ? Icons.favorite
-                        : Icons.favorite_border,
-                  ),
-                  color: Colors.green,
-                  onPressed: () async {
-                    await _repo.toggleFavorite(
-                      affirmation.id,
-                      !affirmation.isFavorite,
-                    );
-                    _refreshAffirmations();
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete),
-                  color: Colors.deepOrange,
-                  onPressed: () async {
-                    await _repo.deleteAffirmation(affirmation.id);
-                    _refreshAffirmations();
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.arrow_forward),
-                  color: singleItem ? Colors.grey : null,
-                  onPressed: singleItem ? null : () => _nextFocus(items.length),
-                ),
-              ],
-            ),
+                  // Skip animation if looping
+                  pageController.jumpToPage(nextIndex);
+                },
+              ),
+            ],
+          ),
 
-            const Spacer(),
-          ],
-        ),
+          const Spacer(),
+        ],
       );
     }
     
