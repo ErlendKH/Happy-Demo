@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import '../data/affirmation_api.dart';
 import '../data/affirmation_repository.dart';
 import '../utils/saved_affirmation_notifier.dart';
@@ -31,20 +32,29 @@ class _AffirmationScreenState extends State<AffirmationScreen> {
   Future<void> nextAffirmation() async {
     if (_isLoading) return;
 
+    final nextIndex = _currentIndex + 1;
+
+    // ✅ CASE 1: Forward navigation exists in history
+    if (nextIndex < _history.length) {
+      setState(() {
+        _currentIndex = nextIndex;
+      });
+      await _updateAlreadySaved();
+      return;
+    }
+
+    // ✅ CASE 2: Need to fetch a new affirmation
     setState(() => _isLoading = true);
+
     try {
       final text = await fetchAffirmation();
 
       setState(() {
-        if (_currentIndex < _history.length - 1) {
-          _history.removeRange(_currentIndex + 1, _history.length);
-        }
         _history.add(text);
-        _currentIndex++;
+        _currentIndex = _history.length - 1;
       });
 
       await _updateAlreadySaved();
-
     } finally {
       setState(() => _isLoading = false);
     }
@@ -85,10 +95,7 @@ class _AffirmationScreenState extends State<AffirmationScreen> {
     setState(() => _isSaving = false);
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Saved ✨'),
-        duration: Duration(seconds: 2),
-      ),
+      const SnackBar(content: Text('Saved ✨'), duration: Duration(seconds: 2)),
     );
   }
 
@@ -100,11 +107,12 @@ class _AffirmationScreenState extends State<AffirmationScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+
             const Spacer(),
 
-            if (_isLoading)
-              const CircularProgressIndicator()
-            else
+            if (_isLoading) ...[
+              const CircularProgressIndicator(),
+            ] else ...[
               Text(
                 currentAffirmation ??
                     'Take a breath.\nSomething good is coming.',
@@ -114,16 +122,28 @@ class _AffirmationScreenState extends State<AffirmationScreen> {
                   fontWeight: FontWeight.w500,
                 ),
               ),
+            ],
 
-            const Spacer(),
+            // const Spacer(),
+
+            const SizedBox(height: 32),
+
+            Lottie.asset(
+              'assets/lottie/meditation.json',
+              // width: 200,
+              // height: 200,
+              height: 250,
+              repeat: true,
+            ),
+
+            const SizedBox(height: 32),
 
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 IconButton(
                   icon: const Icon(Icons.arrow_back),
-                  onPressed:
-                  _currentIndex > 0 ? previousAffirmation : null,
+                  onPressed: _currentIndex > 0 ? previousAffirmation : null,
                 ),
 
                 // ElevatedButton(
@@ -144,31 +164,35 @@ class _AffirmationScreenState extends State<AffirmationScreen> {
                 ElevatedButton(
                   onPressed: currentAffirmation != null && !_isSaving
                       ? () async {
-                    if (_alreadySaved) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("You've already saved this affirmation."),
-                          duration: Duration(seconds: 2),
-                        ),
-                      );
-                      return;
-                    }
+                          if (_alreadySaved) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  "You've already saved this affirmation.",
+                                ),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                            return;
+                          }
 
-                    await saveCurrentAffirmation();
-                  }
+                          await saveCurrentAffirmation();
+                        }
                       : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _alreadySaved ? Colors.lightGreen : Colors.white60,
+                    backgroundColor: _alreadySaved
+                        ? Colors.lightGreen
+                        : Colors.white60,
                   ),
                   child: _isSaving
                       ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
                       : const Text("Keep"),
                 ),
 
@@ -178,6 +202,9 @@ class _AffirmationScreenState extends State<AffirmationScreen> {
                 ),
               ],
             ),
+
+            const SizedBox(height: 32),
+
           ],
         ),
       ),

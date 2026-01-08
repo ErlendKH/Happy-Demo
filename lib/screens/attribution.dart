@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 
 class AttributionScreen extends StatefulWidget {
   const AttributionScreen({super.key});
@@ -16,32 +17,49 @@ class _AttributionScreenState extends State<AttributionScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
+          children: [
 
-            Text(
+            const SizedBox(height: 24),
+
+            Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 0,
+                  horizontal: 0,
+                ),
+              child: Lottie.asset(
+                'assets/lottie/sunrise.json',
+                // width: 200,
+                // height: 200,
+                repeat: true,
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            const Text(
               "Created by",
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 8),
-            Text("Erlend Kyrkjerud Hårtveit"),
+            const SizedBox(height: 8),
+            const Text("Erlend Kyrkjerud Hårtveit"),
 
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
 
-            Text(
+            const Text(
               "Affirmations",
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 8),
-            Text("Provided by affirmations.dev"),
+            const SizedBox(height: 8),
+            const Text("Provided by affirmations.dev"),
 
-            SizedBox(height: 24),
+            const SizedBox(height: 24),
 
-            Text(
+            const Text(
               "Animations",
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 8),
-            Text("Lottie animations by respective creators."),
+            const SizedBox(height: 8),
+            const Text("Lottie animations by respective creators."),
 
           ],
         ),
