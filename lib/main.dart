@@ -17,7 +17,7 @@ class HappyDemoApp extends StatelessWidget {
       title: 'Happy Demo',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple),
         useMaterial3: true,
       ),
       // home: const HomePage(),
