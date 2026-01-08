@@ -21,7 +21,7 @@ class _SavedScreenState extends State<SavedScreen> {
   List<AffirmationItem> _affirmations = [];
   bool _isLoading = true;
 
-  SavedViewMode _viewMode = SavedViewMode.focus;
+  SavedViewMode _viewMode = SavedViewMode.list;
   SortMode _sortMode = SortMode.newest;
 
   int _focusIndex = 0;
@@ -58,31 +58,8 @@ class _SavedScreenState extends State<SavedScreen> {
     });
   }
 
-  // Future<void> _refreshAffirmations() async {
-  //   if (kDebugMode) print('_refreshAffirmations running');
-  //
-  //   setState(() => _isLoading = true);
-  //
-  //   final data = await _repo.getAffirmations();
-  //
-  //   setState(() {
-  //     _affirmations = data;
-  //     _focusIndex = (_focusIndex >= data.length) ? data.length - 1 : _focusIndex;
-  //     if (_sortMode == SortMode.random) {
-  //       _affirmations.shuffle();
-  //     }
-  //     _isLoading = false;
-  //   });
-  // }
-
   List<AffirmationItem> _sortedAffirmations() {
     var list = List<AffirmationItem>.from(_affirmations);
-
-    // // Filter first
-    // if (_sortMode == SortMode.favorites) {
-    //   list = list.where((a) => a.isFavorite).toList();
-    //   return list;
-    // }
 
     // Handle favorites filter
     if (_sortMode == SortMode.favorites) {
@@ -143,8 +120,89 @@ class _SavedScreenState extends State<SavedScreen> {
     final totalCount = _affirmations.length;
     final favoritesCount = _affirmations.where((a) => a.isFavorite).length;
 
+    // if (_viewMode == SavedViewMode.focus) {
+    //   final affirmation = items[_focusIndex % items.length];
+    //
+    //   return GestureDetector(
+    //     onHorizontalDragEnd: (details) {
+    //       if (details.primaryVelocity == null) return;
+    //       if (details.primaryVelocity! < 0) {
+    //         _nextFocus(items.length);
+    //       } else {
+    //         _prevFocus(items.length);
+    //       }
+    //     },
+    //
+    //     child: Column(
+    //       mainAxisAlignment: MainAxisAlignment.center,
+    //       children: [
+    //         // Affirmation
+    //         Padding(
+    //           padding: const EdgeInsets.all(24),
+    //           child: Text(
+    //             affirmation.text,
+    //             style: Theme.of(context).textTheme.headlineSmall,
+    //             textAlign: TextAlign.center,
+    //           ),
+    //         ),
+    //
+    //         // Index
+    //         Text(
+    //           '${_focusIndex + 1} of ${items.length}',
+    //           style: Theme.of(context).textTheme.bodySmall,
+    //         ),
+    //
+    //         const SizedBox(height: 24),
+    //
+    //         // Actions
+    //         Row(
+    //           mainAxisAlignment: MainAxisAlignment.center,
+    //           children: [
+    //             IconButton(
+    //               icon: const Icon(Icons.arrow_back),
+    //               onPressed: _focusIndex > 0
+    //                   ? () => _prevFocus(items.length)
+    //                   : null,
+    //             ),
+    //             IconButton(
+    //               icon: Icon(
+    //                 affirmation.isFavorite
+    //                     ? Icons.favorite
+    //                     : Icons.favorite_border,
+    //               ),
+    //               color: Colors.green,
+    //               onPressed: () async {
+    //                 await _repo.toggleFavorite(
+    //                   affirmation.id,
+    //                   !affirmation.isFavorite,
+    //                 );
+    //                 _refreshAffirmations();
+    //               },
+    //             ),
+    //             IconButton(
+    //               icon: const Icon(Icons.delete),
+    //               color: Colors.deepOrange,
+    //               onPressed: () async {
+    //                 await _repo.deleteAffirmation(affirmation.id);
+    //                 _refreshAffirmations();
+    //               },
+    //             ),
+    //             IconButton(
+    //               icon: const Icon(Icons.arrow_forward),
+    //               onPressed: _focusIndex < items.length - 1
+    //                   ? () => _nextFocus(items.length)
+    //                   : null,
+    //             ),
+    //           ],
+    //         ),
+    //       ],
+    //     ),
+    //
+    //   );
+    // }
     if (_viewMode == SavedViewMode.focus) {
       final affirmation = items[_focusIndex % items.length];
+      final singleItem = items.length == 1;
 
       return GestureDetector(
         onHorizontalDragEnd: (details) {
@@ -155,36 +213,52 @@ class _SavedScreenState extends State<SavedScreen> {
             _prevFocus(items.length);
           }
         },
+
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Affirmation
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Text(
-                affirmation.text,
-                style: Theme.of(context).textTheme.headlineSmall,
-                textAlign: TextAlign.center,
+            const Spacer(),
+
+            Flexible(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        affirmation.text,
+                        style: Theme.of(context).textTheme.headlineSmall,
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
 
-            // Index
-            Text(
-              '${_focusIndex + 1} of ${items.length}',
-              style: Theme.of(context).textTheme.bodySmall,
+            const SizedBox(height: 16),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '${_focusIndex + 1} of ${items.length}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
 
-            // Actions
+            // Action buttons
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 IconButton(
                   icon: const Icon(Icons.arrow_back),
-                  onPressed: _focusIndex > 0
-                      ? () => _prevFocus(items.length)
-                      : null,
+                  color: singleItem ? Colors.grey : null,
+                  onPressed: singleItem ? null : () => _prevFocus(items.length),
                 ),
                 IconButton(
                   icon: Icon(
@@ -211,17 +285,18 @@ class _SavedScreenState extends State<SavedScreen> {
                 ),
                 IconButton(
                   icon: const Icon(Icons.arrow_forward),
-                  onPressed: _focusIndex < items.length - 1
-                      ? () => _nextFocus(items.length)
-                      : null,
+                  color: singleItem ? Colors.grey : null,
+                  onPressed: singleItem ? null : () => _nextFocus(items.length),
                 ),
               ],
             ),
+
+            const Spacer(),
           ],
         ),
       );
     }
-
+    
     // LIST MODE
     return Column(
       children: [
@@ -275,6 +350,7 @@ class _SavedScreenState extends State<SavedScreen> {
         ),
       ],
     );
+
   }
 
   @override
@@ -300,25 +376,6 @@ class _SavedScreenState extends State<SavedScreen> {
             },
           ),
 
-          // Sort menu
-          // PopupMenuButton<SortMode>(
-          //   icon: const Icon(Icons.sort),
-          //   onSelected: (mode) {
-          //     setState(() {
-          //       _sortMode = mode;
-          //       _focusIndex = 0; // reset focus
-          //     });
-          //   },
-          //   itemBuilder: (context) => const [
-          //     PopupMenuItem(value: SortMode.newest, child: Text("Newest")),
-          //     PopupMenuItem(value: SortMode.oldest, child: Text("Oldest")),
-          //     PopupMenuItem(value: SortMode.random, child: Text("Random")),
-          //     PopupMenuItem(
-          //       value: SortMode.favorites,
-          //       child: Text("Favorites"),
-          //     ),
-          //   ],
-          // ),
           PopupMenuButton<SortMode>(
             icon: const Icon(Icons.sort),
             onSelected: (mode) {
