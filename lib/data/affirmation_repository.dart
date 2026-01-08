@@ -1,4 +1,5 @@
 import 'package:sqflite/sqflite.dart';
+import 'affirmation_item.dart';
 import 'database.dart';
 
 class AffirmationRepository {
@@ -17,7 +18,7 @@ class AffirmationRepository {
     );
   }
 
-  Future<List<String>> getAffirmations() async {
+  Future<List<AffirmationItem>> getAffirmations() async {
     final db = await AppDatabase.instance.database;
 
     final rows = await db.query(
@@ -25,16 +26,33 @@ class AffirmationRepository {
       orderBy: 'created_at DESC',
     );
 
-    return rows.map((e) => e['text'] as String).toList();
+    return rows.map((e) {
+      return AffirmationItem(
+        id: e['id'] as int,
+        text: e['text'] as String,
+        isFavorite: (e['is_favorite'] as int) == 1,
+        createdAt: e['created_at'] as int,
+      );
+    }).toList();
   }
 
-  Future<void> deleteAffirmation(String text) async {
+  Future<void> toggleFavorite(int id, bool isFavorite) async {
     final db = await AppDatabase.instance.database;
 
+    await db.update(
+      'affirmations',
+      {'is_favorite': isFavorite ? 1 : 0},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  Future<void> deleteAffirmation(int id) async {
+    final db = await AppDatabase.instance.database;
     await db.delete(
       'affirmations',
-      where: 'text = ?',
-      whereArgs: [text],
+      where: 'id = ?',
+      whereArgs: [id],
     );
   }
 

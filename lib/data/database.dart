@@ -30,7 +30,8 @@ class AppDatabase {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         text TEXT UNIQUE,
         source TEXT,
-        created_at INTEGER
+        created_at INTEGER,
+        is_favorite INTEGER DEFAULT 0
       )
     ''');
   }
